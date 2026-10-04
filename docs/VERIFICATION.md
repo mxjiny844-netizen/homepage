@@ -6,7 +6,7 @@
 - `npm test`: 4/4 통과. 초안·게시 분리와 revision 충돌, 주문 전환 멱등성, 초안·게시본·이력의 미디어 사용 보호, 링크·개인정보 동의 스키마를 확인했다.
 - `node scripts/integration-test.mjs`: 통과. 로컬 관리자 로그인, 익명 관리 API 차단, CMS 비공개 제품 생성·수정·원복, 오래된 revision 거부, 초안이 공개본을 바꾸지 않음, 유효·무효 문의 처리를 확인했다.
 - `npm run build`: 통과. App Router 프로덕션 빌드와 타입 검사가 완료됐다.
-- `npm run lint`: 오류 0개. PostCSS 익명 default export 경고 1개가 남아 있다.
+- `npm run lint`: 오류와 경고 0개. PostCSS 설정은 named const를 default export하도록 정리했다.
 - `npm audit --omit=dev --json`: production 의존성 취약점 0개.
 
 ## 브라우저 확인 결과
