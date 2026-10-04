@@ -1,6 +1,7 @@
 -- 기존 프로젝트에서 먼저 백업 후 실행. 이 migration은 데이터 삭제를 하지 않습니다.
+begin;
 create table public.profiles (id uuid primary key references auth.users(id) on delete cascade, display_name text, is_admin boolean not null default false);
-create or replace function public.is_admin() returns boolean language sql stable security definer set search_path = public as $$ select exists(select 1 from profiles where id = auth.uid() and is_admin = true); $$;
+create or replace function public.is_admin() returns boolean language sql stable security definer set search_path = public, pg_temp as $$ select exists(select 1 from profiles where id = auth.uid() and is_admin = true); $$;
 create table public.cms_state (id text primary key check(id='main'), document jsonb not null, revision integer not null default 0, updated_at timestamptz not null default now());
 create table public.pages (slug text primary key, draft jsonb not null, published jsonb not null, revision integer not null default 0, updated_at timestamptz not null default now());
 create table public.section_versions (id uuid primary key default gen_random_uuid(), page_slug text not null references public.pages(slug), document jsonb not null, label text not null, created_at timestamptz not null default now(), created_by uuid references auth.users(id));
@@ -22,18 +23,18 @@ execute format('create policy admin_only on public.%I for all to authenticated u
 end loop; end $$;
 alter table public.inquiry_limits enable row level security;
 
-create or replace function public.get_public_cms() returns jsonb language sql stable security definer set search_path = public as $$
+create or replace function public.get_public_cms() returns jsonb language sql stable security definer set search_path = public, pg_temp as $$
 select jsonb_set(jsonb_set(document,'{products}',coalesce((select jsonb_agg(p) from jsonb_array_elements(document->'products') p where (p->>'published')::boolean),'[]')),'{showcase,items}',coalesce((select jsonb_agg(item) from jsonb_array_elements(document->'showcase'->'items') item where (item->>'active')::boolean and exists(select 1 from jsonb_array_elements(document->'products') p where p->>'id'=item->>'productId' and (p->>'published')::boolean)),'[]')) from cms_state where id='main'; $$;
-create or replace function public.get_public_pages() returns jsonb language sql stable security definer set search_path = public as $$ select coalesce(jsonb_object_agg(slug,published),'{}') from pages; $$;
+create or replace function public.get_public_pages() returns jsonb language sql stable security definer set search_path = public, pg_temp as $$ select coalesce(jsonb_object_agg(slug,published),'{}') from pages; $$;
 
-create or replace function public.save_cms(payload jsonb, expected_revision integer) returns integer language plpgsql security invoker set search_path = public as $$ declare v integer; begin
+create or replace function public.save_cms(payload jsonb, expected_revision integer) returns integer language plpgsql security invoker set search_path = public, pg_temp as $$ declare v integer; begin
 if not public.is_admin() then raise exception 'FORBIDDEN'; end if;
 select revision into v from cms_state where id='main' for update;
 if v is null then insert into cms_state(id,document) values('main',payload); return 0; end if;
 if v<>expected_revision then raise exception 'REVISION_CONFLICT'; end if;
 update cms_state set document=payload,revision=v+1,updated_at=now() where id='main'; return v+1;
 end; $$;
-create or replace function public.save_page(page_slug text,payload jsonb,expected_revision integer,do_publish boolean default false) returns integer language plpgsql security invoker set search_path = public as $$ declare v integer; begin
+create or replace function public.save_page(page_slug text,payload jsonb,expected_revision integer,do_publish boolean default false) returns integer language plpgsql security invoker set search_path = public, pg_temp as $$ declare v integer; begin
 if not public.is_admin() then raise exception 'FORBIDDEN'; end if;
 select revision into v from pages where slug=page_slug for update;
 if v is null then insert into pages(slug,draft,published) values(page_slug,payload,'{"sections":[],"title":"","description":""}'); v:=0; end if;
@@ -45,17 +46,21 @@ else update pages set draft=payload,revision=v+1,updated_at=now() where slug=pag
 return v+1; end; $$;
 
 -- 서버의 service role만 호출. 여러 인스턴스에서도 같은 DB 제한을 공유합니다.
-create or replace function public.consume_inquiry_limit(limit_key text) returns boolean language plpgsql security definer set search_path = public as $$ declare n integer; begin
+create or replace function public.consume_inquiry_limit(limit_key text) returns boolean language plpgsql security definer set search_path = public, pg_temp as $$ declare n integer; begin
 insert into inquiry_limits(key,count,window_start) values(limit_key,1,now()) on conflict(key) do update set count=case when inquiry_limits.window_start<now()-interval '10 minutes' then 1 else inquiry_limits.count+1 end,window_start=case when inquiry_limits.window_start<now()-interval '10 minutes' then now() else inquiry_limits.window_start end returning count into n;
 return n<=5; end; $$;
 revoke all on function public.consume_inquiry_limit(text) from public,anon,authenticated;
 grant execute on function public.consume_inquiry_limit(text) to service_role;
+revoke all on function public.get_public_cms() from public;
+revoke all on function public.get_public_pages() from public;
+grant execute on function public.get_public_cms() to anon,authenticated,service_role;
+grant execute on function public.get_public_pages() to anon,authenticated,service_role;
 revoke all on function public.save_cms(jsonb,integer) from public,anon;
 revoke all on function public.save_page(text,jsonb,integer,boolean) from public,anon;
 grant execute on function public.save_cms(jsonb,integer) to authenticated;
 grant execute on function public.save_page(text,jsonb,integer,boolean) to authenticated;
 
-create or replace function public.remove_media(media_id text,media_url text,expected_revision integer) returns integer language plpgsql security invoker set search_path = public as $$ declare v integer; doc jsonb; begin
+create or replace function public.remove_media(media_id text,media_url text,expected_revision integer) returns integer language plpgsql security invoker set search_path = public, pg_temp as $$ declare v integer; doc jsonb; begin
 if not public.is_admin() then raise exception 'FORBIDDEN'; end if;
 select revision,document into v,doc from cms_state where id='main' for update;
 if v<>expected_revision then raise exception 'REVISION_CONFLICT'; end if;
@@ -73,7 +78,7 @@ create policy media_admin_update on storage.objects for update to authenticated 
 create policy media_admin_delete on storage.objects for delete to authenticated using(bucket_id='media' and public.is_admin());
 
 -- 문의 상태와 주문 생성은 하나의 transaction에서 처리한다. 기존 주문이 있으면 그대로 반환한다.
-create or replace function public.convert_inquiry_order(inquiry_uuid uuid) returns uuid language plpgsql security invoker set search_path = public as $$
+create or replace function public.convert_inquiry_order(inquiry_uuid uuid) returns uuid language plpgsql security invoker set search_path = public, pg_temp as $$
 declare order_id uuid;
 begin
 if not public.is_admin() then raise exception 'FORBIDDEN'; end if;
@@ -86,3 +91,4 @@ return order_id;
 end; $$;
 revoke all on function public.convert_inquiry_order(uuid) from public,anon;
 grant execute on function public.convert_inquiry_order(uuid) to authenticated;
+commit;
