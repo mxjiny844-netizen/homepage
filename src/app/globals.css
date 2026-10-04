@@ -17,3 +17,5 @@
 }
 
 
+
+@layer site {.section-spacer{height:var(--desktop-height,80px);min-height:0}.spacer-size{height:100%}.editable-image{height:var(--desktop-image-height,250px)}@container (max-width:1000px){.section-spacer{height:var(--tablet-height,var(--desktop-height,80px))}.editable-image{height:var(--tablet-image-height,var(--desktop-image-height,250px))}}@container (max-width:650px){.section-spacer{height:var(--mobile-height,var(--tablet-height,var(--desktop-height,80px)))}.editable-image{height:var(--mobile-image-height,var(--tablet-image-height,var(--desktop-image-height,250px)))}}}
