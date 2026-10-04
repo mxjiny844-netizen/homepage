@@ -23,7 +23,7 @@ end loop; end $$;
 alter table public.inquiry_limits enable row level security;
 
 create or replace function public.get_public_cms() returns jsonb language sql stable security definer set search_path = public as $$
-select jsonb_set(document,'{products}',coalesce((select jsonb_agg(p) from jsonb_array_elements(document->'products') p where (p->>'published')::boolean),'[]')) from cms_state where id='main'; $$;
+select jsonb_set(jsonb_set(document,'{products}',coalesce((select jsonb_agg(p) from jsonb_array_elements(document->'products') p where (p->>'published')::boolean),'[]')),'{showcase,items}',coalesce((select jsonb_agg(item) from jsonb_array_elements(document->'showcase'->'items') item where (item->>'active')::boolean and exists(select 1 from jsonb_array_elements(document->'products') p where p->>'id'=item->>'productId' and (p->>'published')::boolean)),'[]')) from cms_state where id='main'; $$;
 create or replace function public.get_public_pages() returns jsonb language sql stable security definer set search_path = public as $$ select coalesce(jsonb_object_agg(slug,published),'{}') from pages; $$;
 
 create or replace function public.save_cms(payload jsonb, expected_revision integer) returns integer language plpgsql security invoker set search_path = public as $$ declare v integer; begin
@@ -55,8 +55,34 @@ revoke all on function public.save_page(text,jsonb,integer,boolean) from public,
 grant execute on function public.save_cms(jsonb,integer) to authenticated;
 grant execute on function public.save_page(text,jsonb,integer,boolean) to authenticated;
 
+create or replace function public.remove_media(media_id text,media_url text,expected_revision integer) returns integer language plpgsql security invoker set search_path = public as $$ declare v integer; doc jsonb; begin
+if not public.is_admin() then raise exception 'FORBIDDEN'; end if;
+select revision,document into v,doc from cms_state where id='main' for update;
+if v<>expected_revision then raise exception 'REVISION_CONFLICT'; end if;
+perform 1 from pages for update;
+if position(to_jsonb(media_url)::text in (doc-'media')::text)>0 or exists(select 1 from pages where position(to_jsonb(media_url)::text in draft::text)>0 or position(to_jsonb(media_url)::text in published::text)>0) or exists(select 1 from section_versions where position(to_jsonb(media_url)::text in document::text)>0) then raise exception 'MEDIA_IN_USE'; end if;
+update cms_state set document=jsonb_set(doc,'{media}',coalesce((select jsonb_agg(m) from jsonb_array_elements(doc->'media') m where m->>'id'<>media_id),'[]')),revision=v+1,updated_at=now() where id='main'; return v+1;
+end; $$;
+revoke all on function public.remove_media(text,text,integer) from public,anon;
+grant execute on function public.remove_media(text,text,integer) to authenticated;
+
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values('media','media',true,10485760,array['image/webp']) on conflict(id) do nothing;
 create policy media_public_read on storage.objects for select to anon,authenticated using(bucket_id='media');
 create policy media_admin_insert on storage.objects for insert to authenticated with check(bucket_id='media' and public.is_admin());
 create policy media_admin_update on storage.objects for update to authenticated using(bucket_id='media' and public.is_admin()) with check(bucket_id='media' and public.is_admin());
 create policy media_admin_delete on storage.objects for delete to authenticated using(bucket_id='media' and public.is_admin());
+
+-- 문의 상태와 주문 생성은 하나의 transaction에서 처리한다. 기존 주문이 있으면 그대로 반환한다.
+create or replace function public.convert_inquiry_order(inquiry_uuid uuid) returns uuid language plpgsql security invoker set search_path = public as $$
+declare order_id uuid;
+begin
+if not public.is_admin() then raise exception 'FORBIDDEN'; end if;
+perform 1 from public.inquiries where id=inquiry_uuid for update;
+if not found then raise exception 'INQUIRY_NOT_FOUND'; end if;
+select id into order_id from public.orders where inquiry_id=inquiry_uuid for update;
+if order_id is null then insert into public.orders(inquiry_id) values(inquiry_uuid) returning id into order_id; end if;
+update public.inquiries set status='주문 진행' where id=inquiry_uuid;
+return order_id;
+end; $$;
+revoke all on function public.convert_inquiry_order(uuid) from public,anon;
+grant execute on function public.convert_inquiry_order(uuid) to authenticated;
