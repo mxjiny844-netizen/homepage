@@ -37,7 +37,7 @@ npm run typecheck
 npm run build
 ```
 
-Netlify는 Next.js 13.5 이상 App Router와 SSR을 자동 지원하므로, 이 Next 16 앱에는 별도 adapter 또는 `netlify.toml`이 필요하지 않다. Dashboard의 Build command는 `next build`, Publish directory는 `.next`를 사용한다. SSR에서 쓰는 환경 변수는 `netlify.toml`이 아니라 Netlify UI 또는 CLI에 등록한다.
+Netlify는 Next.js 13.5 이상 App Router와 SSR을 지원한다. 이 프로젝트는 `netlify.toml`에서 `@netlify/plugin-nextjs`를 명시해 SSR·Route Handler adapter가 빌드 로그에 생성되도록 한다. Dashboard의 Build command는 `npm run build`, Publish directory는 `.next`와 같아야 한다. SSR에서 쓰는 환경 변수는 `netlify.toml`이 아니라 Netlify UI 또는 CLI에 등록한다.
 
 이 앱은 CMS 최신 데이터를 요청마다 읽도록 공개 레이아웃과 관리자 경로를 `force-dynamic`으로 설정했다. 따라서 실제 환경 변수를 넣지 않은 빌드를 운영으로 승격하면 안 된다.
 

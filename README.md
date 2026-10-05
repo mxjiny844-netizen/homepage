@@ -54,7 +54,7 @@ on conflict (id) do update set display_name = excluded.display_name, is_admin = 
 
 ## 배포
 
-이 프로젝트는 Google Sites가 아닌 Next.js 앱입니다. GitHub 저장소를 Netlify에 Import하고 위 환경 변수를 Preview와 Production에 입력합니다. Netlify는 이 Next.js 16 SSR 앱을 자동 감지하므로 별도 `netlify.toml`이 필요하지 않습니다. install 명령은 `npm install`, build 명령은 `npm run build`입니다. 배포 전 환경 검사와 Supabase 초기화·CMS 게시 순서는 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)를 따릅니다. 배포 후 실제 HTTPS 도메인으로 `NEXT_PUBLIC_SITE_URL`을 바꾸고 공개 페이지, `/sitemap.xml`, 관리자 로그인, 문의, 미디어 업로드를 다시 확인합니다.
+이 프로젝트는 Google Sites가 아닌 Next.js 앱입니다. GitHub 저장소를 Netlify에 Import하고 위 환경 변수를 Preview와 Production에 입력합니다. `netlify.toml`은 `@netlify/plugin-nextjs`를 명시해 SSR·Route Handler용 adapter가 빌드에 포함되도록 고정합니다. install 명령은 `npm install`, build 명령은 `npm run build`입니다. 배포 전 환경 검사와 Supabase 초기화·CMS 게시 순서는 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)를 따릅니다. 배포 후 실제 HTTPS 도메인으로 `NEXT_PUBLIC_SITE_URL`을 바꾸고 공개 페이지, `/sitemap.xml`, 관리자 로그인, 문의, 미디어 업로드를 다시 확인합니다.
 
 ## 현재 범위와 제한
 
