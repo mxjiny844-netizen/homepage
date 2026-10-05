@@ -1,0 +1,11 @@
+import {randomBytes} from 'node:crypto';
+import {mkdirSync,existsSync,readFileSync,writeFileSync} from 'node:fs';
+import {spawn} from 'node:child_process';
+mkdirSync('.local-data',{recursive:true});
+const file='.local-data/access.json';
+const credentials=existsSync(file)?JSON.parse(readFileSync(file,'utf8')):{password:randomBytes(12).toString('base64url'),secret:randomBytes(32).toString('hex')};
+writeFileSync(file,JSON.stringify(credentials,null,2));
+console.log('FORME 로컬 샌드박스: http://127.0.0.1:3000');
+console.log('관리 로그인: 임의 이메일 + .local-data/access.json의 password (테스트 전용). 실제 문의 DB 미연결.');
+const child=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','--hostname','127.0.0.1'],{stdio:'inherit',env:{...process.env,LOCAL_SANDBOX:'true',LOCAL_ADMIN_PASSWORD:credentials.password,LOCAL_SESSION_SECRET:credentials.secret}});
+child.on('exit',code=>process.exit(code??0));
