@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {convertOrder,publishPage} from '../src/lib/domain';
 import {mediaUsage} from '../src/lib/media';
-import {initialData} from '../src/lib/seed';
-import {inquirySchema,safeLink} from '../src/lib/schema';
+import {initialData,upgradeLegacyCatalog} from '../src/lib/seed';
+import {cmsSchema,inquirySchema,safeLink} from '../src/lib/schema';
+
+function legacyCms(){const cms=initialData().cms;const description='공간에 어울리는 머신을 만나보세요. 실제 모델과 공급 가능 여부를 확인한 후, 사용 환경에 맞는 제품을 안내해 드립니다.';const features=['사용 환경에 맞춘 제품 상담','설치 조건 확인 후 견적 안내','제품 및 공급 가능 여부 상담'];cms.products=cms.products.slice(0,6).map((p,i)=>({...p,id:`machine-${i+1}`,name:`Coffee Machine 0${i+1}`,brand:i<4?'JETINNO':'CIME',model:'',image:`/machines/machine-0${i+1}.webp`,gallery:[],video:'',category:i<4?'전자동':'반자동',description,features,specs:'',size:'',weight:'',power:'',water:'확인 필요',environment:i<4?'사무실, 가정':'카페, 음식점',usage:'확인 필요',price:null,priceMode:'상담 후 견적',featured:true,isNew:false,published:true,stock:'공급 여부 상담',seoTitle:'',seoDescription:''}));cms.showcase.items=cms.products.map(p=>({id:p.id,image:p.image,name:p.name,productId:p.id,active:true}));return cms;}
 
 test('페이지 초안·게시·버전·revision 계약',()=>{const state=initialData();const page=structuredClone(state.pages.about.draft);page.title='초안 제목';assert.equal(publishPage(state,'about',page,0,false),1);assert.equal(state.pages.about.draft.title,'초안 제목');assert.notEqual(state.pages.about.published.title,'초안 제목');assert.throws(()=>publishPage(state,'about',page,0,false),/다른 변경/);assert.equal(publishPage(state,'about',page,1,true),2);assert.equal(state.pages.about.published.title,'초안 제목');assert.equal(state.versions.length,1);});
 
@@ -12,3 +14,7 @@ test('문의 주문 전환은 같은 문의에 대해 멱등이다',()=>{const s
 test('미디어 사용 위치는 초안·게시본·이력까지 보존 검사한다',()=>{const state=initialData();const url='/uploads/used.webp';state.pages.about.draft.sections[0].image=url;state.pages.about.published.sections[0].backgroundImage=url;state.versions.push({id:'v',page_slug:'about',document:structuredClone(state.pages.about.published),label:'검증',created_at:new Date().toISOString()});const usage=mediaUsage(state,url);assert.ok(usage.some(v=>v.includes('초안')));assert.ok(usage.some(v=>v.includes('게시본')));assert.ok(usage.some(v=>v.includes('게시 이력')));});
 
 test('링크와 문의 동의는 서버 스키마에서 제한한다',()=>{assert.equal(safeLink.safeParse('javascript:alert(1)').success,false);assert.equal(safeLink.safeParse('/products?category=test').success,true);const valid={name:'홍길동',phone:'010-1234-5678',email:'',kind:'inquiry',customer_type:'',product_id:'',region:'',budget:'',method:'',available_time:'',message:'다섯 글자 이상의 문의입니다.',consent:true,website:''};assert.equal(inquirySchema.safeParse(valid).success,true);assert.equal(inquirySchema.safeParse({...valid,consent:false}).success,false);});
+
+test('기본 6개 placeholder 제품은 새 JETINNO 카탈로그로 안전하게 전환한다',()=>{const cms=legacyCms();cms.settings.phone='기존 설정 유지';cms.showcase.speed=9;cms.media.push({id:'preserved-upload',name:'운영자 업로드',url:'/uploads/preserved.webp',createdAt:'2026-10-20T00:00:00Z'});const upgraded=upgradeLegacyCatalog(cms);assert.equal(upgraded.products.length,10);assert.equal(upgraded.products[0].id,'machine-1');assert.equal(upgraded.products[0].model,'JL05 PRO');assert.equal(upgraded.products[1].model,'JL06A');assert.ok(upgraded.products.some(p=>p.id==='jetinno-jl580'));assert.equal(upgraded.settings.phone,'기존 설정 유지');assert.equal(upgraded.showcase.speed,9);assert.equal(upgraded.media.some(m=>m.id==='preserved-upload'),true);assert.ok(upgraded.media.some(m=>m.url==='/machines/jetinno-jl06b-milk.webp'));assert.equal(cmsSchema.safeParse(upgraded).success,true);});
+
+test('운영자가 기존 placeholder 제품을 편집했으면 카탈로그를 덮어쓰지 않는다',()=>{const cms=legacyCms();cms.products[0].price=250000;assert.equal(upgradeLegacyCatalog(cms),cms);});
