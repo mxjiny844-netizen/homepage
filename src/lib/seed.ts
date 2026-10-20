@@ -2,6 +2,7 @@ import type {CMS,PageDocument,Section,Product,AdminData} from './schema';
 import {makeProduct,specSheet} from './product';
 import {cimeProducts} from './cime';
 import {eidenBrandProducts} from './eiden-brands';
+import {jetinnoExtraProducts} from './jetinno-extra';
 export const blankStyles=()=>({desktop:{},tablet:{},mobile:{}});
 export const makeSection=(type:Section['type'],title='새 섹션'):Section=>({id:crypto.randomUUID(),type,eyebrow:'',title,body:'내용을 입력하세요.',image:'',backgroundImage:'',buttonText:'상담받기',buttonHref:'/consulting',secondaryButtonText:'',secondaryButtonHref:'',visible:true,animation:'none',styles:blankStyles(),elements:[]});
 
@@ -21,7 +22,8 @@ export const products:Product[]=[
   makeProduct('jetinno-jl30','JL30 생우유 전자동 커피머신','JETINNO','JL30-ES1C-FV · JL30-ST-MW-NP · JL30-BT-MW-NP','/machines/jetinno-jl30-front.webp','OCS-FM','작은 공간에서 생우유 음료까지 제공하도록 설계된 전자동 커피머신입니다. 14g 또는 20g 추출기 선택과 분리형 브루어가 특징이며, 소규모 사무실·호텔·편의점에 적합합니다.',['분리형 브루어로 전면에서 간편하게 세척','14g/20g 추출기 선택, 듀얼 보일러 시스템','자동 생우유 거품, 하루 100잔'],{gallery:['/machines/jetinno-jl30-black.webp'],size:'340 × 540 × 490mm',weight:'15kg',power:'1,600W / 220–240V, 50/60Hz',water:'2L·8L 물탱크 / 수도 직결 / 생수통',environment:'소·중형 사무실·호텔·편의점',usage:'하루 100잔 (제조사 표기)',specs:'표시된 사양은 제조사 공개 자료 기준입니다. 14g/20g 추출기와 우유 냉장 장치 등 구성 옵션은 상담 시 확인합니다.',specSheet:specSheet([['구성','JL30-ES1C-FV · JL30-ST-MW-NP · JL30-BT-MW-NP'],['일일 생산량','100잔'],['기계 치수','340 × 540 × 490mm'],['순중량','15kg'],['정격 전압/주파수','220–240V, 50/60Hz'],['정격 출력','1,600W'],['화면','7인치 터치스크린'],['원두통','1.2kg × 1'],['그라인더','Jetinno SGH64 × 1 (64mm 특수강 플랫버, 9단계)'],['추출기','S14/S20 × 1 (14g/20g 선택)'],['물 보일러','열블록 1,500W'],['스팀 보일러','열블록 1,300W'],['워터 펌프','전자식 펌프 × 1'],['생우유 거품','지원'],['별도 온수','미지원'],['스팀 완드','미지원'],['추출구 높이','80–160mm'],['폐기물통','약 40회분'],['드립 트레이','1L / 외부 배수 선택'],['급수 방식','2L·8L 물탱크 / 수도 직결 / 생수통'],['네트워크','Wi-Fi 기본, 4G 선택'],['인증','CB, CE, CQC, EAC']]),seoTitle:'JETINNO JL30 생우유 전자동 커피머신',seoDescription:'JL30의 생우유 거품, 14g/20g 추출기 구성과 제조사 공개 사양.',featured:false}),
   makeProduct('jetinno-jl15','JL15 컴팩트 생우유 커피머신','JETINNO','JL15-ES1C-FV','/machines/jetinno-jl15-front.webp','OCS-FM','생우유 모듈을 내장한 컴팩트 전자동 커피머신입니다. 작은 설치 공간에서도 다양한 우유 음료를 제공하며, 소규모 사무실·매장에 적합합니다.',['컴팩트한 본체와 500g 원두통','자동 생우유 거품과 7인치 터치스크린','전면 분리형 추출기와 자동 세척 옵션'],{gallery:['/machines/jetinno-jl15-white.webp'],size:'300 × 440 × 490mm',weight:'14kg',power:'1,600W / 220–240V, 50/60Hz',water:'2L·8L 물탱크 / 수도 직결 / 생수통',environment:'소형 사무실·소규모 매장',usage:'하루 60잔 (제조사 표기)',specs:'표시된 사양은 제조사 공개 자료 기준입니다. 우유 냉장 장치와 결제 모듈 등 구성 옵션은 상담 시 확인합니다.',specSheet:specSheet([['구성','JL15-ES1C-FV'],['일일 생산량','60잔'],['기계 치수','300 × 440 × 490mm'],['순중량','14kg'],['정격 전압/주파수','220–240V, 50/60Hz'],['정격 출력','1,600W'],['화면','7인치 터치스크린'],['원두통','500g × 1'],['그라인더','Jetinno SGH64 × 1 (64mm 특수강 플랫버, 9단계)'],['추출기','S14/S20 × 1'],['물 보일러','열블록 1,500W'],['스팀 보일러','열블록 1,300W'],['워터 펌프','전자식 펌프 × 1'],['생우유 거품','지원'],['별도 온수','미지원'],['스팀 완드','미지원'],['추출구 높이','80–160mm'],['폐기물통','약 20회분'],['드립 트레이','0.7L'],['급수 방식','2L·8L 물탱크 / 수도 직결 / 생수통'],['네트워크','Wi-Fi 기본, 4G 선택'],['인증','CB, CE, CQC, EAC']]),seoTitle:'JETINNO JL15 컴팩트 생우유 커피머신',seoDescription:'JL15의 컴팩트한 크기와 생우유 기능, 제조사 공개 사양을 확인하세요.',featured:false}),
   ...cimeProducts,
-  ...eidenBrandProducts
+  ...eidenBrandProducts,
+  ...jetinnoExtraProducts
 ].map(product=>({
   ...product,
   tags:[...new Set([
