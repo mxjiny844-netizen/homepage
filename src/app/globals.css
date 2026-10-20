@@ -21,3 +21,13 @@
 
 
 @layer site {.section-spacer{height:var(--desktop-height,80px);min-height:0}.spacer-size{height:100%}.editable-image{height:var(--desktop-image-height,250px)}@container (max-width:1000px){.section-spacer{height:var(--tablet-height,var(--desktop-height,80px))}.editable-image{height:var(--tablet-image-height,var(--desktop-image-height,250px))}}@container (max-width:650px){.section-spacer{height:var(--mobile-height,var(--tablet-height,var(--desktop-height,80px)))}.editable-image{height:var(--mobile-image-height,var(--tablet-image-height,var(--desktop-image-height,250px)))}}}
+
+/* OCS-FM detail specification table */
+.detail-spec-sheet{margin:0 0 70px;padding-top:55px;border-top:1px solid var(--line)}
+.detail-spec-sheet h2{font-size:33px;margin:20px 0 30px}
+.spec-table-wrap{overflow-x:auto}
+.spec-table{width:100%;border-collapse:collapse;font-size:12px}
+.spec-table th,.spec-table td{padding:13px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.7}
+.spec-table th{width:28%;font-weight:500;color:#6b705f}
+.spec-table td{width:72%}
+@media(max-width:650px){.detail-spec-sheet{margin-bottom:45px;padding-top:35px}.detail-spec-sheet h2{font-size:29px}.spec-table{font-size:11px}.spec-table th{width:38%}.spec-table td{width:62%}}
