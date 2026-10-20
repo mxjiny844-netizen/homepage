@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+
+const base=process.env.TEST_BASE_URL||'http://127.0.0.1:3000';
+const credentials=JSON.parse(await readFile('.local-data/access.json','utf8'));
+const origin={Origin:base};
+const request=(path,options={})=>fetch(base+path,{...options,headers:{...origin,...options.headers}});
+const login=await request('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'integration@example.test',password:credentials.password})});
+assert.equal(login.status,200,'로컬 관리자 로그인');
+const cookie=(login.headers.getSetCookie?.()[0]||login.headers.get('set-cookie')||'').split(';')[0];
+assert.ok(cookie,'관리자 세션 쿠키');
+const adminHeaders={'Content-Type':'application/json',Cookie:cookie};
+const admin=async()=>{const response=await request('/api/admin',{headers:{Cookie:cookie}});assert.equal(response.status,200,'관리자 조회');return response.json();};
+const post=async action=>{const response=await request('/api/admin',{method:'POST',headers:adminHeaders,body:JSON.stringify(action)});const body=await response.json();return {response,body};};
+
+assert.equal((await request('/api/admin')).status,401,'익명 관리 API 차단');
+assert.equal((await fetch(base+'/api/inquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).status,403,'출처 없는 문의 차단');
+let state=await admin();
+const originalCms=structuredClone(state.cms);
+const productId=`integration-${Date.now()}`;
+const product={...originalCms.products[0],id:productId,name:'통합 검증 비공개 제품',published:false,featured:false};
+let result=await post({action:'cms',document:{...originalCms,products:[...originalCms.products,product]},revision:state.revision});
+assert.equal(result.response.status,200,'비공개 제품 생성');
+state=result.body;result=await post({action:'cms',document:{...state.cms,products:state.cms.products.map(p=>p.id===productId?{...p,name:'통합 검증 수정 제품'}:p)},revision:state.revision});
+assert.equal(result.response.status,200,'비공개 제품 수정');
+state=result.body;result=await post({action:'cms',document:originalCms,revision:state.revision});
+assert.equal(result.response.status,200,'임시 제품 원복');
+state=result.body;
+const originalAbout=structuredClone(state.pages.about.draft);const publishedAbout=structuredClone(state.pages.about.published);
+const draft={...originalAbout,title:'통합 검증 초안'};
+result=await post({action:'page',slug:'about',document:draft,revision:state.pages.about.revision,publish:false});assert.equal(result.response.status,200,'초안 저장');
+const stale=await post({action:'page',slug:'about',document:draft,revision:state.pages.about.revision,publish:false});assert.equal(stale.response.status,400,'오래된 revision 거부');
+state=result.body;assert.equal(state.pages.about.published.title,publishedAbout.title,'초안은 공개본을 바꾸지 않음');
+result=await post({action:'page',slug:'about',document:originalAbout,revision:state.pages.about.revision,publish:false});assert.equal(result.response.status,200,'ABOUT 초안 원복');
+const invalid=await request('/api/inquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});assert.equal(invalid.status,400,'잘못된 문의 거부');
+const inquiry={name:'통합 검증 고객',phone:'010-5555-0000',email:'',kind:'inquiry',customer_type:'',product_id:'',region:'',budget:'',method:'',available_time:'',message:'자동 통합 검증에서 생성한 문의입니다.',consent:true,website:''};
+const accepted=await request('/api/inquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(inquiry)});assert.equal(accepted.status,200,'유효 문의 저장');
+console.log('integration test passed: auth, authorization, CMS create/edit/restore, draft conflict, inquiry validation/save');
