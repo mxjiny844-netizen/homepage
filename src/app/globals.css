@@ -31,3 +31,9 @@
 .spec-table th{width:28%;font-weight:500;color:#6b705f}
 .spec-table td{width:72%}
 @media(max-width:650px){.detail-spec-sheet{margin-bottom:45px;padding-top:35px}.detail-spec-sheet h2{font-size:29px}.spec-table{font-size:11px}.spec-table th{width:38%}.spec-table td{width:62%}}
+
+/* Brand category tabs */
+.brand-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 0 2px}
+.brand-tabs button{border:1px solid var(--line);background:transparent;padding:8px 12px;font-size:11px;letter-spacing:.03em;color:#6d7265}
+.brand-tabs button.active{background:#24291e;border-color:#24291e;color:var(--paper)}
+@media(max-width:650px){.brand-tabs{gap:6px}.brand-tabs button{padding:7px 10px;font-size:10px}}
