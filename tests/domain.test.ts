@@ -4,6 +4,7 @@ import {convertOrder,publishPage} from '../src/lib/domain';
 import {mediaUsage} from '../src/lib/media';
 import {initialData,upgradeLegacyCatalog} from '../src/lib/seed';
 import {matchesCategory,toggleProductCategory} from '../src/lib/product';
+import {formatInquiryMessage} from '../src/lib/notify';
 import {cmsSchema,inquirySchema,safeLink} from '../src/lib/schema';
 
 function legacyCms(){const cms=initialData().cms;const description='공간에 어울리는 머신을 만나보세요. 실제 모델과 공급 가능 여부를 확인한 후, 사용 환경에 맞는 제품을 안내해 드립니다.';const features=['사용 환경에 맞춘 제품 상담','설치 조건 확인 후 견적 안내','제품 및 공급 가능 여부 상담'];cms.products=cms.products.slice(0,6).map((p,i)=>({...p,id:`machine-${i+1}`,name:`Coffee Machine 0${i+1}`,brand:i<4?'JETINNO':'CIME',model:'',image:`/machines/machine-0${i+1}.webp`,gallery:[],video:'',category:i<4?'전자동':'반자동',description,features,specs:'',size:'',weight:'',power:'',water:'확인 필요',environment:i<4?'사무실, 가정':'카페, 음식점',usage:'확인 필요',price:null,priceMode:'상담 후 견적',featured:true,isNew:false,published:true,stock:'공급 여부 상담',seoTitle:'',seoDescription:''}));cms.showcase.items=cms.products.map(p=>({id:p.id,image:p.image,name:p.name,productId:p.id,active:true}));return cms;}
@@ -23,6 +24,8 @@ test('기존 8개 카탈로그에 전체 브랜드 제품을 추가하고 운영
 test('기존에 저장된 JL29A에도 상세 콘텐츠와 확장 갤러리를 보강한다',()=>{const cms=initialData().cms;const jl=cms.products.find(p=>p.id==='jetinno-jl29a')!;jl.detail=undefined;jl.gallery=['/machines/jetinno-jl29a-black.webp'];const upgraded=upgradeLegacyCatalog(cms);const next=upgraded.products.find(p=>p.id==='jetinno-jl29a')!;assert.ok(next.detail?.highlights?.length);assert.ok(next.detail?.options?.length);assert.ok(next.gallery.length>=7);assert.equal(cmsSchema.safeParse(upgraded).success,true);const jl31b=upgraded.products.find(p=>p.id==='jetinno-jl31b')!;assert.ok(jl31b.detail?.highlights?.length);assert.ok(jl31b.gallery.length>=4);});
 
 test('제품 카테고리를 복수로 선택하면 양쪽 필터에 모두 노출된다',()=>{const options=['전자동','반자동','사무실용'];const first=toggleProductCategory('사무실용',['전자동'],'전자동',true,options);assert.equal(first.category,'전자동');assert.deepEqual(first.tags,['전자동','사무실용']);const second=toggleProductCategory(first.category,first.tags,'사무실용',false,options);assert.equal(second.category,'전자동');assert.deepEqual(second.tags,['전자동']);const last=toggleProductCategory('전자동',['전자동'],'전자동',false,options);assert.equal(last.category,'전자동');assert.deepEqual(last.tags,['전자동']);});
+
+test('텔레그램 알림 문구에 상담 접수 정보가 포함된다',()=>{const message=formatInquiryMessage({name:'홍길동',phone:'010-1234-5678',email:'test@example.com',kind:'consulting',product_id:'jetinno-jl29a',region:'서울',budget:'300만원',method:'전화',available_time:'오후',message:'JL29A 상담을 신청합니다.',created_at:'2026-10-21T00:00:00.000Z'});assert.match(message,/홍길동/);assert.match(message,/010-1234-5678/);assert.match(message,/jetinno-jl29a/);assert.match(message,/JL29A 상담을 신청합니다/);});
 
 test('기존 기본 하단 안내 문구를 새 문구로 전환하고 사용자 수정은 보존한다',()=>{const cms=initialData().cms;cms.settings.disclaimer='본 사이트는 독립적으로 운영되는 판매·상담 채널이며 에이덴 공식 홈페이지가 아닙니다.';const upgraded=upgradeLegacyCatalog(cms);assert.equal(upgraded.settings.disclaimer,'원두의 가치를 더하다.');const custom=initialData().cms;custom.settings.disclaimer='직접 수정한 하단 문구';assert.equal(upgradeLegacyCatalog(custom).settings.disclaimer,'직접 수정한 하단 문구');});
 
