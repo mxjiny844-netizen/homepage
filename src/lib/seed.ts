@@ -20,7 +20,13 @@ export const products:Product[]=[
   makeProduct('jetinno-jl30','JL30 생우유 전자동 커피머신','JETINNO','JL30-ES1C-FV · JL30-ST-MW-NP · JL30-BT-MW-NP','/machines/jetinno-jl30-front.webp','OCS-FM','작은 공간에서 생우유 음료까지 제공하도록 설계된 전자동 커피머신입니다. 14g 또는 20g 추출기 선택과 분리형 브루어가 특징이며, 소규모 사무실·호텔·편의점에 적합합니다.',['분리형 브루어로 전면에서 간편하게 세척','14g/20g 추출기 선택, 듀얼 보일러 시스템','자동 생우유 거품, 하루 100잔'],{gallery:['/machines/jetinno-jl30-black.webp'],size:'340 × 540 × 490mm',weight:'15kg',power:'1,600W / 220–240V, 50/60Hz',water:'2L·8L 물탱크 / 수도 직결 / 생수통',environment:'소·중형 사무실·호텔·편의점',usage:'하루 100잔 (제조사 표기)',specs:'표시된 사양은 제조사 공개 자료 기준입니다. 14g/20g 추출기와 우유 냉장 장치 등 구성 옵션은 상담 시 확인합니다.',specSheet:specSheet([['구성','JL30-ES1C-FV · JL30-ST-MW-NP · JL30-BT-MW-NP'],['일일 생산량','100잔'],['기계 치수','340 × 540 × 490mm'],['순중량','15kg'],['정격 전압/주파수','220–240V, 50/60Hz'],['정격 출력','1,600W'],['화면','7인치 터치스크린'],['원두통','1.2kg × 1'],['그라인더','Jetinno SGH64 × 1 (64mm 특수강 플랫버, 9단계)'],['추출기','S14/S20 × 1 (14g/20g 선택)'],['물 보일러','열블록 1,500W'],['스팀 보일러','열블록 1,300W'],['워터 펌프','전자식 펌프 × 1'],['생우유 거품','지원'],['별도 온수','미지원'],['스팀 완드','미지원'],['추출구 높이','80–160mm'],['폐기물통','약 40회분'],['드립 트레이','1L / 외부 배수 선택'],['급수 방식','2L·8L 물탱크 / 수도 직결 / 생수통'],['네트워크','Wi-Fi 기본, 4G 선택'],['인증','CB, CE, CQC, EAC']]),seoTitle:'JETINNO JL30 생우유 전자동 커피머신',seoDescription:'JL30의 생우유 거품, 14g/20g 추출기 구성과 제조사 공개 사양.',featured:false}),
   makeProduct('jetinno-jl15','JL15 컴팩트 생우유 커피머신','JETINNO','JL15-ES1C-FV','/machines/jetinno-jl15-front.webp','OCS-FM','생우유 모듈을 내장한 컴팩트 전자동 커피머신입니다. 작은 설치 공간에서도 다양한 우유 음료를 제공하며, 소규모 사무실·매장에 적합합니다.',['컴팩트한 본체와 500g 원두통','자동 생우유 거품과 7인치 터치스크린','전면 분리형 추출기와 자동 세척 옵션'],{gallery:['/machines/jetinno-jl15-white.webp'],size:'300 × 440 × 490mm',weight:'14kg',power:'1,600W / 220–240V, 50/60Hz',water:'2L·8L 물탱크 / 수도 직결 / 생수통',environment:'소형 사무실·소규모 매장',usage:'하루 60잔 (제조사 표기)',specs:'표시된 사양은 제조사 공개 자료 기준입니다. 우유 냉장 장치와 결제 모듈 등 구성 옵션은 상담 시 확인합니다.',specSheet:specSheet([['구성','JL15-ES1C-FV'],['일일 생산량','60잔'],['기계 치수','300 × 440 × 490mm'],['순중량','14kg'],['정격 전압/주파수','220–240V, 50/60Hz'],['정격 출력','1,600W'],['화면','7인치 터치스크린'],['원두통','500g × 1'],['그라인더','Jetinno SGH64 × 1 (64mm 특수강 플랫버, 9단계)'],['추출기','S14/S20 × 1'],['물 보일러','열블록 1,500W'],['스팀 보일러','열블록 1,300W'],['워터 펌프','전자식 펌프 × 1'],['생우유 거품','지원'],['별도 온수','미지원'],['스팀 완드','미지원'],['추출구 높이','80–160mm'],['폐기물통','약 20회분'],['드립 트레이','0.7L'],['급수 방식','2L·8L 물탱크 / 수도 직결 / 생수통'],['네트워크','Wi-Fi 기본, 4G 선택'],['인증','CB, CE, CQC, EAC']]),seoTitle:'JETINNO JL15 컴팩트 생우유 커피머신',seoDescription:'JL15의 컴팩트한 크기와 생우유 기능, 제조사 공개 사양을 확인하세요.',featured:false}),
   ...cimeProducts
-];
+].map(product=>({
+  ...product,
+  tags:[...new Set([
+    ...(product.tags??[]),
+    ...(product.brand==='JETINNO'?['전자동']:product.brand==='CIME'?['반자동']:[])
+  ])]
+}));
 const legacyDescription='공간에 어울리는 머신을 만나보세요. 실제 모델과 공급 가능 여부를 확인한 후, 사용 환경에 맞는 제품을 안내해 드립니다.';
 const legacyFeatures=['사용 환경에 맞춘 제품 상담','설치 조건 확인 후 견적 안내','제품 및 공급 가능 여부 상담'];
 export function upgradeLegacyCatalog(cms:CMS):CMS{
@@ -30,10 +36,11 @@ export function upgradeLegacyCatalog(cms:CMS):CMS{
   const updatedProducts=cms.products.map(product=>{
     const n=Number(product.id.replace('machine-',''));
     const replacement=byId.get(product.id);
-    if(n<1||n>6||!replacement||!isLegacyProduct(product,n))return product;
+    if(n<1||n>6||!replacement||!isLegacyProduct(product,n))return replacement?.tags?.length&&!product.tags?.length?{...product,tags:replacement.tags}:product;
     replacedIds.add(product.id);
     return replacement;
   });
+  const tagsChanged=updatedProducts.some((product,index)=>product!==cms.products[index]);
   const existingIds=new Set(updatedProducts.map(product=>product.id));
   const addedProducts=products.filter(product=>!existingIds.has(product.id));
   const categories=[...new Set([...cms.categories,...seedCMS.categories])];
@@ -68,7 +75,7 @@ export function upgradeLegacyCatalog(cms:CMS):CMS{
     usedMediaIds.add(uniqueId);
     return {...item,id:uniqueId};
   });
-  if(!replacedIds.size&&!addedProducts.length&&!addedMedia.length&&!categoriesChanged&&!brandsChanged&&!navigationChanged)return cms;
+  if(!replacedIds.size&&!addedProducts.length&&!addedMedia.length&&!tagsChanged&&!categoriesChanged&&!brandsChanged&&!navigationChanged)return cms;
   return {...cms,products:[...updatedProducts,...addedProducts],brands,categories,navigation,showcase:{...cms.showcase,items:finalShowcase},media:[...retainedMedia,...addedMedia]};
 }
 const policyText='운영자가 실제 사업 조건과 개인정보 처리 과정을 확인한 후 입력할 정책 템플릿입니다. 현재는 확정된 약관이 아닙니다. 운영 개시 전 실제 사업자 정보, 처리 목적, 보유 기간, 배송·교환·환불 조건과 문의 창구를 검토해 주세요.';
