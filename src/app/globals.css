@@ -37,3 +37,50 @@
 .brand-tabs button{border:1px solid var(--line);background:transparent;padding:8px 12px;font-size:11px;letter-spacing:.03em;color:#6d7265}
 .brand-tabs button.active{background:#24291e;border-color:#24291e;color:var(--paper)}
 @media(max-width:650px){.brand-tabs{gap:6px}.brand-tabs button{padding:7px 10px;font-size:10px}}
+
+/* Rich product detail page */
+.detail-subnav-wrap{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line)}
+.detail-subnav{display:flex;gap:22px;padding-top:14px;padding-bottom:14px;font-size:11px;letter-spacing:.04em;overflow:auto}
+.detail-subnav a{color:#7c856c;white-space:nowrap}
+.detail-subnav a:hover{color:var(--ink)}
+.detail-tagline{font-size:14px;color:#59614e;margin:-8px 0 12px;letter-spacing:-.01em}
+.detail-badges{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+.detail-badges span{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:7px 10px;font-size:10px;color:#6f7661;line-height:1.4}
+.detail-overview{display:grid;grid-template-columns:.8fr 1.2fr;gap:70px;padding:70px 0 55px;border-top:1px solid var(--line)}
+.detail-overview h2{font-size:40px;margin-top:14px;max-width:420px}
+.detail-overview p{font-size:14px;line-height:2;color:#6f7661;max-width:720px}
+.overview-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.overview-meta span{border-top:1px solid var(--line);padding-top:8px;font-size:10px;color:#8a907d;min-width:120px}
+.detail-highlights{padding:55px 0 70px;border-top:1px solid var(--line)}
+.highlight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:35px}
+.highlight-card{border-top:1px solid var(--line);padding-top:18px}
+.highlight-image{position:relative;height:230px;background:#eef0e5;margin-bottom:18px;overflow:hidden}
+.highlight-image img{padding:18px;object-fit:contain}
+.highlight-copy>span{font-size:9px;color:#9ba48b}
+.highlight-copy h3{font-size:19px;margin:10px 0 8px;letter-spacing:-.04em}
+.highlight-copy p{font-size:11px;line-height:1.8;color:#7c856c}
+.detail-stories{padding:0 0 40px}
+.detail-story{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;padding:55px 0;border-top:1px solid var(--line)}
+.detail-story.image-left .detail-story-image{order:1}
+.detail-story.image-left .detail-story-copy{order:2}
+.detail-story-image{position:relative;height:480px;background:#eef0e5}
+.detail-story-image img{padding:35px}
+.detail-story-copy h2{font-size:36px;margin:18px 0 20px}
+.detail-story-copy p{font-size:13px;line-height:2;color:#6f7661}
+.detail-options{padding:55px 0 70px;border-top:1px solid var(--line)}
+.option-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:35px}
+.option-card{border:1px solid var(--line);background:#f6f6f1}
+.option-image{position:relative;height:220px;background:#fff}
+.option-image img{padding:18px}
+.option-card>div:last-child{padding:20px}
+.option-card h3{font-size:17px;margin-bottom:8px}
+.option-card p{font-size:11px;line-height:1.8;color:#7c856c}
+.detail-gallery-section{padding:55px 0 70px;border-top:1px solid var(--line)}
+.detail-cta{display:flex;align-items:center;justify-content:space-between;gap:40px;background:#24291e;color:#f4f4ec;padding:55px 6%;margin:20px 0 0}
+.detail-cta h2{font-size:38px;margin:18px 0 12px;color:#f4f4ec}
+.detail-cta p{font-size:12px;color:#c9ccbd;max-width:520px}
+.detail-cta .eyebrow{color:#b7bda9}
+@media(max-width:1000px){.detail-overview{grid-template-columns:1fr;gap:25px}.highlight-grid,.option-grid{grid-template-columns:repeat(2,1fr)}.detail-story{gap:35px}.detail-story-image{height:380px}.detail-cta h2{font-size:30px}}
+@media(max-width:650px){.detail-subnav{gap:16px;font-size:10px}.detail-tagline{font-size:12px}.detail-overview{padding:45px 0 35px}.detail-overview h2{font-size:30px}.highlight-grid,.option-grid{grid-template-columns:1fr}.highlight-image{height:250px}.detail-story{grid-template-columns:1fr;gap:25px;padding:40px 0}.detail-story-image{height:300px}.detail-story-copy h2{font-size:28px}.detail-cta{flex-direction:column;align-items:flex-start;padding:40px 6%;margin:0}.detail-cta h2{font-size:29px}.detail-spec-sheet{margin-bottom:45px;padding-top:35px}.detail-spec-sheet h2{font-size:29px}}
+
+#overview,#features,#specs,#options,#gallery,#consult{scroll-margin-top:72px}
